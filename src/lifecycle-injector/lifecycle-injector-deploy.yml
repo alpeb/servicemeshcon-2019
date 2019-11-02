@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lifecycle-injector
+spec:
+  selector:
+    matchLabels:
+      app: lifecycle-injector
+  template:
+    metadata:
+      labels:
+        app: lifecycle-injector
+    spec:
+      containers:
+      - name: lifecycle-injector
+        image: gcr.io/linkerd-io/lifecycle-injector:v1
+        ports:
+        - name: https
+          containerPort: 443
+

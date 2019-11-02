@@ -1,0 +1,6 @@
+#!/bin/bash
+
+eval $(minikube -p std docker-env)
+
+docker build -t gcr.io/linkerd-io/lifecycle-injector:v1 .
+

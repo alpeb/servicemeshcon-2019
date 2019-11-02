@@ -1,0 +1,12 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: lifecycle-injector-svc
+spec:
+  selector:
+    app: lifecycle-injector
+  ports:
+  - name: https
+    port: 443
+    targetPort: 443
+
