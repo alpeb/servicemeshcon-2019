@@ -125,7 +125,6 @@ type jsonPatch struct {
 }
 
 func getPatch(bytes []byte) ([]byte, error) {
-	log.Info("getPatch()")
 	var pod *corev1.Pod
 	if err := yaml.Unmarshal(bytes, &pod); err != nil {
 		return nil, err
@@ -133,16 +132,14 @@ func getPatch(bytes []byte) ([]byte, error) {
 	log.Infof("pod: %v", pod)
 
 	pre := []int{}
-	post := []int{}
 	for j, container := range pod.Spec.Containers {
 		log.Infof("container.Name: %s", container.Name)
+		// idempotency!
 		if container.Lifecycle != nil {
 			continue
 		}
 		if container.Name == "linkerd-proxy" {
 			pre = append(pre, j)
-		} else {
-			post = append(post, j)
 		}
 	}
 
@@ -159,27 +156,7 @@ func getPatch(bytes []byte) ([]byte, error) {
 							Command: []string{
 								"/bin/bash",
 								"-c",
-								"sleep 2",
-							},
-						},
-					},
-				},
-			},
-		)
-	}
-
-	for _, i := range post {
-		patch = append(patch,
-			jsonPatch{
-				Op:   "add",
-				Path: fmt.Sprintf("/spec/containers/%d/lifecycle", i),
-				Value: &corev1.Lifecycle{
-					PostStart: &corev1.Handler{
-						Exec: &corev1.ExecAction{
-							Command: []string{
-								"/bin/bash",
-								"-c",
-								"sleep 2",
+								"sleep 5",
 							},
 						},
 					},
@@ -189,9 +166,8 @@ func getPatch(bytes []byte) ([]byte, error) {
 	}
 
 	log.Infof("pre: %#v", pre)
-	log.Infof("post: %#v", post)
 	log.Infof("patch:: %#v", patch)
-	if len(pre) == 0 && len(post) == 0 {
+	if len(pre) == 0 {
 		return nil, nil
 	}
 
